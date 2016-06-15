@@ -1,18 +1,14 @@
 import { Entity } from 'draft-js'
 import { getEntityRanges } from 'draft-js-utils'
-import { h1, p, span, a } from './elements/index.js'
-
-const blockElementMap = {
-  'header-one': h1,
-  'p': p,
-  'unstyled': p,
-}
+import { h1, p, span, a, div } from './elements/index.js'
 
 class HTMLGenerator {
-  constructor(contentState, { inlineStyleMap, blockAttrFn }) {
+  constructor(contentState, opts) {
+    const { inlineStyleMap, blockAttrFn, blockElementFn } = opts
     this.contentState = contentState
     this.inlineStyleMap = inlineStyleMap
     this.blockAttrFn = blockAttrFn
+    this.blockElementFn = blockElementFn
   }
 
   call() {
@@ -30,7 +26,9 @@ class HTMLGenerator {
 
     const content   = this.applyInlineStyles(entityRanges)
     const attrs     = this.blockAttrFn(block)
-    const blockHTML = this.applyBlockElementWrapper(type, content, attrs)
+    const element   = this.blockElementFn && this.blockElementFn(block) || div
+
+    const blockHTML = element({content, attrs}) || div
 
     return blockHTML
   }
@@ -75,19 +73,6 @@ class HTMLGenerator {
     })
 
     return styles
-  }
-
-  applyBlockElementWrapper(type, content, attrs) {
-    const element = blockElementMap[type]
-
-    if (!element) {
-      throw new Error(
-        `No element function found for '${type}'.
-         Is a handler provided by the blockElementMap?`
-      )
-    }
-
-    return element({ content, attrs })
   }
 }
 
