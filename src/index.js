@@ -78,7 +78,16 @@ class HTMLGenerator {
   }
 
   applyBlockElementWrapper(type, content, attrs) {
-    return blockElementMap[type]({ content, attrs })
+    const element = blockElementMap[type]
+
+    if (!element) {
+      throw new Error(
+        `No element function found for '${type}'.
+         Is a handler provided by the blockElementMap?`
+      )
+    }
+
+    return element({ content, attrs })
   }
 }
 
